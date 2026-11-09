@@ -1,0 +1,54 @@
+# GitLab CI/CD pipeline - Phase 4: validate -> test -> build
+# (publish and deploy stages are added in Phases 5 and 6)
+
+stages:
+  - validate
+  - test
+  - build
+
+variables:
+  # Keep pip's download cache inside the project so GitLab can cache it
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# Settings shared by the two Python jobs
+.python-job:
+  image: python:3.12-slim
+  cache:
+    key:
+      files:
+        - requirements.txt
+    paths:
+      - .cache/pip
+
+validate:
+  extends: .python-job
+  stage: validate
+  script:
+    # Fails if any Python file has a syntax error
+    - python -m compileall -q app tests
+    # Fails if a file the pipeline needs is missing
+    - test -f Dockerfile
+    - test -f requirements.txt
+
+test:
+  extends: .python-job
+  stage: test
+  script:
+    - pip install -r requirements.txt
+    - pytest -v --junitxml=report.xml
+  artifacts:
+    when: always            # keep the report even if tests fail
+    reports:
+      junit: report.xml     # GitLab shows test results in the pipeline page
+
+build:
+  stage: build
+  image: docker:27-cli
+  services:
+    - docker:27-dind        # a Docker engine the job can talk to
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    # The tag is the commit SHA, so every image is traceable to its code
+    - docker build -t "fastapi-cicd-platform:$CI_COMMIT_SHORT_SHA" .
+    - docker image ls fastapi-cicd-platform
