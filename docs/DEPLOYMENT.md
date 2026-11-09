@@ -22,29 +22,55 @@ token GitLab creates for each job. Runner registration uses a token you paste on
 
 ## 1. The server
 
-Use **Ubuntu Server 24.04 LTS** in VMware (2 GB RAM, 20 GB disk). Set the network adapter to
-**Bridged** (or NAT with internet access, which is enough since the runner connects out).
-Kali also works for experiments, but Docker's official install instructions target Ubuntu.
+This project uses the **Kali Linux VM in VMware** as the deployment server (Kali is Debian-based).
+Ubuntu Server remains the preferred production-style target; the commands below also work there
+with the differences noted.
 
-## 2. Install Docker (Linux, on the server)
-
-Follow the official steps for Ubuntu: https://docs.docker.com/engine/install/ubuntu/
-("Install using the apt repository"). Then verify:
+- VMware network adapter: **NAT** is enough (the runner connects *out* to GitLab). Use **Bridged**
+  if you also want to reach the app from Windows at `http://<vm-ip>:8000`.
+- Change the default `kali` / `kali` password first (`passwd`). The app port 8000 will be open on this VM.
+- Give the VM at least 2 GB RAM and 20 GB free disk.
 
 ```bash
-docker --version
-docker compose version
-sudo docker run --rm hello-world     # expected: "Hello from Docker!"
-sudo apt install -y curl             # used by the health check
+sudo apt update && sudo apt full-upgrade -y     # Linux (Kali): bring the VM up to date
 ```
+
+## 2. Install Docker (Linux / Kali, on the server)
+
+Kali documents installing Docker from its own repositories (the `docker.io` package):
+
+```bash
+sudo apt install -y docker.io curl
+sudo systemctl enable docker --now
+docker --version
+sudo docker run --rm hello-world       # expected: "Hello from Docker!"
+docker compose version                 # expected: a version number; see below if missing
+```
+
+If `docker compose version` says "unknown command", install the Compose package and re-check:
+```bash
+sudo apt install -y docker-compose
+docker compose version
+```
+(If it still fails, send me the output: Docker's own `docker-compose-plugin` can be added instead.)
+
+On Ubuntu use Docker's official apt repository instead: https://docs.docker.com/engine/install/ubuntu/
 
 ## 3. Install GitLab Runner (Linux, on the server)
 
-Follow https://docs.gitlab.com/runner/install/linux-repository/ , then:
+The standard package script may not recognise Kali, so use GitLab's manual binary install
+(https://docs.gitlab.com/runner/install/linux-manually/), which works on any Linux:
 
 ```bash
-sudo systemctl status gitlab-runner   # expected: active (running)
+sudo curl -L --output /usr/local/bin/gitlab-runner   "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-amd64"
+sudo chmod +x /usr/local/bin/gitlab-runner
+sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
+sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+sudo gitlab-runner start
+sudo gitlab-runner status              # expected: "gitlab-runner: Service is running"
 ```
+Check your CPU type first with `uname -m`: `x86_64` uses the `amd64` binary above (use `arm64`
+for `aarch64`).
 
 ## 4. Create the runner in GitLab (browser)
 
