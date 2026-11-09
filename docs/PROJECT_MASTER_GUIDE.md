@@ -2,7 +2,7 @@
 >
 > **Priority:** Portfolio Project 01 --- Build first
 >
-> **Status:** 🟡 Preparation complete · Phase 1 not started
+> **Status:** 🟡 Phases 1-4 complete · Phase 5 (Container Registry) next
 >
 > **Primary objective:** Build, test, publish and deploy a containerized
 > application automatically through a GitLab CI/CD pipeline.
@@ -532,60 +532,60 @@ phases depend on the earlier ones.
 
 ### Phase 1 --- FastAPI application foundation
 
-**Status: ⚪ Not started**
+**Status: 🟢 Completed**
 
 Deliverables:
 
-- [ ] Create the application structure.
-- [ ] Implement the four API endpoints.
-- [ ] Add Pytest tests.
-- [ ] Add Python dependencies.
-- [ ] Add `.gitignore`.
-- [ ] Write the initial README.
-- [ ] Install dependencies in a local Python environment.
-- [ ] Run the application locally.
-- [ ] Run all tests and confirm they pass.
+- [x] Create the application structure.
+- [x] Implement the four API endpoints.
+- [x] Add Pytest tests.
+- [x] Add Python dependencies.
+- [x] Add `.gitignore`.
+- [x] Write the initial README.
+- [x] Install dependencies in a local Python environment.
+- [x] Run the application locally.
+- [x] Run all tests and confirm they pass.
 
 **Exit criteria:** The API works locally and the tests pass.
 
 ### Phase 2 --- Docker containerization
 
-**Status: ⚪ Not started**
+**Status: 🟢 Completed**
 
 Deliverables:
 
-- [ ] Write a secure, understandable Dockerfile.
-- [ ] Add `.dockerignore`.
-- [ ] Add `docker-compose.yml`.
-- [ ] Build the Docker image.
-- [ ] Run the container locally.
-- [ ] Test all required endpoints through the mapped port.
-- [ ] Inspect logs, container status and image details.
-- [ ] Add a container health check where appropriate.
+- [x] Write a secure, understandable Dockerfile.
+- [x] Add `.dockerignore`.
+- [x] Add `docker-compose.yml`.
+- [x] Build the Docker image.
+- [x] Run the container locally.
+- [x] Test all required endpoints through the mapped port.
+- [x] Inspect logs, container status and image details.
+- [x] Add a container health check where appropriate.
 
 **Exit criteria:** The same API runs successfully inside a Docker
 container.
 
 ### Phase 3 --- Git and GitLab repository
 
-**Status: ⚪ Not started**
+**Status: 🟢 Completed**
 
 Deliverables:
 
-- [ ] Initialize Git.
-- [ ] Review `.gitignore`.
-- [ ] Create a GitLab project.
-- [ ] Add the GitLab remote.
-- [ ] Push the initial code.
+- [x] Initialize Git.
+- [x] Review `.gitignore`.
+- [x] Create a GitLab project.
+- [x] Add the GitLab remote.
+- [x] Push the initial code.
 - [ ] Create a feature branch and merge request to practise the workflow.
-- [ ] Confirm the repository contains no secrets.
+- [x] Confirm the repository contains no secrets.
 
 **Exit criteria:** The project is hosted on GitLab and changes can be
 pushed reliably.
 
 ### Phase 4 --- GitLab CI/CD pipeline
 
-**Status: ⚪ Not started**
+**Status: 🟢 Completed**
 
 Create `.gitlab-ci.yml` with an initial pipeline:
 
@@ -595,12 +595,12 @@ Create `.gitlab-ci.yml` with an initial pipeline:
 
 Then:
 
-- [ ] Understand pipeline stages versus jobs.
-- [ ] Choose an available runner strategy.
-- [ ] Configure the runner or select an available hosted runner.
-- [ ] Run the pipeline on a push.
-- [ ] Inspect job logs and fix failures.
-- [ ] Add suitable rules and dependency caching where useful.
+- [x] Understand pipeline stages versus jobs.
+- [x] Choose an available runner strategy.
+- [x] Configure the runner or select an available hosted runner.
+- [x] Run the pipeline on a push.
+- [x] Inspect job logs and fix failures.
+- [ ] Add suitable rules and dependency caching where useful. (caching added; rules not yet)
 
 **Exit criteria:** A push triggers a pipeline and validation, tests and
 image build succeed.
