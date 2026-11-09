@@ -1,0 +1,13 @@
+services:
+  api:
+    # Locally we build from the Dockerfile. In Phase 6 the server will use
+    # IMAGE=<registry image:tag> and pull instead of building.
+    image: ${IMAGE:-fastapi-cicd-platform:local}
+    build: .
+    container_name: fastapi-cicd-platform
+    ports:
+      - "8000:8000"   # host:container
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+    restart: unless-stopped

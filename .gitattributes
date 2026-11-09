@@ -1,0 +1,3 @@
+# Keep Linux line endings (LF) in the repo, even when edited on Windows.
+# Scripts with CRLF fail on Linux ("bad interpreter").
+* text=auto eol=lf
