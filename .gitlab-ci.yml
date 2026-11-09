@@ -1,10 +1,11 @@
-# GitLab CI/CD pipeline - Phase 4: validate -> test -> build
-# (publish and deploy stages are added in Phases 5 and 6)
+# GitLab CI/CD pipeline: validate -> test -> build (+ push to registry) -> deploy
+# The deploy job runs only on a runner tagged "deploy" installed on the Linux server.
 
 stages:
   - validate
   - test
   - build
+  - deploy
 
 variables:
   # Keep pip's download cache inside the project so GitLab can cache it
@@ -62,3 +63,17 @@ build:
         docker tag "$IMAGE" "$CI_REGISTRY_IMAGE:latest"
         docker push "$CI_REGISTRY_IMAGE:latest"
       fi
+
+deploy:
+  stage: deploy
+  tags:
+    - deploy                # only a runner tagged "deploy" (ours, on the server) takes this job
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH   # deploy from main only
+  environment:
+    name: production
+    url: http://localhost:8000
+  variables:
+    IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+  script:
+    - bash deploy/deploy.sh

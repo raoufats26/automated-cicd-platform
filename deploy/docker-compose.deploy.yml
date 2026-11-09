@@ -1,0 +1,12 @@
+# Compose file used ON THE SERVER. Unlike docker-compose.yml it has no "build:",
+# because the server never builds code: it only pulls the image built by the pipeline.
+services:
+  api:
+    image: ${IMAGE:?IMAGE must be set, e.g. registry.gitlab.com/user/project:abc1234}
+    container_name: fastapi-cicd-platform
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      APP_VERSION: ${APP_VERSION:-unknown}
+    restart: unless-stopped
