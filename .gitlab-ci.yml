@@ -48,7 +48,17 @@ build:
     - docker:27-dind        # a Docker engine the job can talk to
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
+    IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"   # registry path + commit ID
+  before_script:
+    # CI_JOB_TOKEN is a temporary token GitLab creates for this job only
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin "$CI_REGISTRY"
   script:
     # The tag is the commit SHA, so every image is traceable to its code
-    - docker build -t "fastapi-cicd-platform:$CI_COMMIT_SHORT_SHA" .
-    - docker image ls fastapi-cicd-platform
+    - docker build -t "$IMAGE" .
+    - docker push "$IMAGE"
+    # 'latest' is only a convenience label; deployments use the SHA tag
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
+        docker tag "$IMAGE" "$CI_REGISTRY_IMAGE:latest"
+        docker push "$CI_REGISTRY_IMAGE:latest"
+      fi
