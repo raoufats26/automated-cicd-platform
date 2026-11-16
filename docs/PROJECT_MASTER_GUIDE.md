@@ -1047,9 +1047,10 @@ Phase 7 remaining steps:
    - Code-path push `ebdc17d4`: full pipeline, deployed at 11:40:00 (uptime 2.32).
    - Docs-only push `382de9a`: no pipeline, no deploy. `/api/status` still showed `ebdc17d4` with uptime 359.3 at 11:46.
    - Evidence: `docs/screenshots/11-docs-only-skip.png`.
-5. Trivy image scanning.
+5. Trivy image scanning: `scan` job written (Trivy 0.76.2 pinned by digest, credentials only on the scan commands), **not yet verified by a pipeline run**.
 6. Registry cleanup policy.
 7. "Security decisions & limitations" section in the README.
+   - Limitation to list: the Trivy scanner image is pinned by version and digest (`0.76.2@sha256:8f6bb947...`) but not cosign-verified.
 
 ---
 

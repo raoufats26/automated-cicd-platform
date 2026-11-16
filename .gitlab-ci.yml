@@ -1,10 +1,11 @@
-# GitLab CI/CD pipeline: validate -> test -> build (+ push to registry) -> deploy
+# GitLab CI/CD pipeline: validate -> test -> build (+ push to registry) -> scan -> deploy
 # The deploy job runs only on a runner tagged "deploy" installed on the Linux server.
 
 stages:
   - validate
   - test
   - build
+  - scan
   - deploy
 
 # Branch pipelines only: no merge request pipelines, so a branch with an open MR
@@ -89,6 +90,36 @@ build:
         docker tag "$IMAGE" "$CI_REGISTRY_IMAGE:latest"
         docker push "$CI_REGISTRY_IMAGE:latest"
       fi
+
+scan:
+  stage: scan
+  # No tags: runs on GitLab shared runners, not on our deploy runner.
+  # The scanner image is pinned to an exact version AND digest, never "latest"
+  # (Trivy supply-chain compromise, March 2026, GHSA-69fq-xp46-6x23). Digest of the
+  # multi-arch index for 0.76.2, verified on Docker Hub and with `docker buildx imagetools inspect`.
+  image:
+    name: docker.io/aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb
+    entrypoint: [""]
+  rules:
+    - changes: *app-files
+  variables:
+    GIT_STRATEGY: none          # nothing from the repo is needed: we scan the pushed image
+    TRIVY_NO_PROGRESS: "true"
+    IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"   # the image the build job pushed
+  script:
+    - trivy --version
+    # 1) Download the vulnerability DB WITHOUT registry credentials. Trivy sends TRIVY_USERNAME/
+    #    TRIVY_PASSWORD to every registry it contacts, so they must not be set during this step.
+    - trivy image --download-db-only
+    # 2) Full report of HIGH and CRITICAL findings; never fails the job (exit code 0).
+    #    Credentials are set only for this command. Scanned remotely: no Docker daemon, no dind.
+    - TRIVY_USERNAME="$CI_REGISTRY_USER" TRIVY_PASSWORD="$CI_REGISTRY_PASSWORD"
+      trivy image --image-src remote --skip-db-update --skip-java-db-update
+      --severity HIGH,CRITICAL --exit-code 0 "$IMAGE"
+    # 3) Gate: fail the job (and so block deploy) on CRITICAL vulnerabilities that have a fix.
+    - TRIVY_USERNAME="$CI_REGISTRY_USER" TRIVY_PASSWORD="$CI_REGISTRY_PASSWORD"
+      trivy image --image-src remote --skip-db-update --skip-java-db-update
+      --severity CRITICAL --ignore-unfixed --exit-code 1 "$IMAGE"
 
 deploy:
   stage: deploy
