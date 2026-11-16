@@ -53,6 +53,37 @@ uvicorn app.main:app --reload
 | `APP_ENV`     | `development` | Environment name          |
 | `APP_VERSION` | `1.0.0`       | Version shown by the API  |
 
+## Results / Evidence
+
+Screenshots from a real run: pipeline `#3072974617`, commit `b59db033`, deployed to a Kali Linux VM.
+
+**1. Green pipeline.** All four stages (validate, test, build, deploy) pass on `main`.
+![Green pipeline](docs/screenshots/01-pipeline-green.png)
+
+**2. Pipelines list.** Each push to `main` triggers a full automated run.
+![Pipelines list](docs/screenshots/02-pipelines-list.png)
+
+**3a. Deploy job runner.** The deploy job runs on the self-managed `kali-deploy-runner` with the shell executor.
+![Deploy job on the self-managed runner](docs/screenshots/03a-deploy-job-runner.png)
+
+**3b. Health check.** The first health check fails during container startup; the retry loop succeeds on attempt 2.
+![Deploy job health check](docs/screenshots/03b-deploy-job-healthy.png)
+
+**4. Container Registry.** `latest` and `b59db033` share the same digest; deploys always use the commit tag; older tags enable rollback.
+![Registry tags](docs/screenshots/04-registry-tags.png)
+
+**5. Environment.** GitLab tracks what is deployed to production, by whom and when.
+![Production environment](docs/screenshots/05-environment-production.png)
+
+**6. Runner online.** The project runner tagged `deploy` is online and idle.
+![Runner online](docs/screenshots/06-runner-online.png)
+
+**7. Server container.** The image is pulled from the registry, never built on the server.
+![Container on the server](docs/screenshots/07-server-container.png)
+
+**8. Version live.** `/api/status` from Windows shows the deployed commit SHA.
+![Live version](docs/screenshots/08-version-live.png)
+
 ## Roadmap
 
 1. Application foundation (current)
