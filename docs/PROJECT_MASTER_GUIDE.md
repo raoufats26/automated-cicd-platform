@@ -943,22 +943,38 @@ Use this section to record progress after each work session.
 **Commands I ran**
 
 ```
-# Kali (Linux), see docs/DEPLOYMENT.md for the full sequence
+# Kali (Linux): diagnose Live mode, then check the network
+findmnt -n -o SOURCE,FSTYPE /          # overlay root = Live mode
+grep -o 'boot=live' /proc/cmdline
+lsblk
+curl -sS -o /dev/null -w "%{http_code}\n" https://gitlab.com   # HTTPS works although ICMP is blocked
+
+# Kali (Linux): runner setup (full sequence in docs/DEPLOYMENT.md)
 sudo /usr/local/bin/gitlab-runner register
+sudo /usr/local/bin/gitlab-runner verify
 sudo /usr/local/bin/gitlab-runner status
 sudo usermod -aG docker gitlab-runner
 sudo -u gitlab-runner docker ps
 sudo rm /home/gitlab-runner/.bash_logout
+sudo journalctl -u gitlab-runner -f    # follow the runner's logs
+
+# Kali (Linux): check the deployed container
+sudo docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
 curl http://localhost:8000/api/status
 
 # Windows (PowerShell)
 .\.venv\Scripts\python.exe -m pytest -v
 Invoke-RestMethod http://192.168.175.128:8000/api/status | Format-List
+# plus a polling loop that repeats the call above until the new version appears
 git add / git commit / git push origin main
 ```
 
 **What worked**
-- Three automated deploys were verified. I have the commit IDs for two: `e9f486a2` and `b59db033`. After each one, `/api/status` showed the matching version.
+- Four automated deploys were verified, each confirmed with `/api/status` from Windows showing the matching version:
+  1. `e9f486a2`: first deploy (APP_VERSION and registry logout).
+  2. `b59db033`: code change (the `message` field).
+  3. `da7a3839`: screenshots commit. I pushed `ac5b71a` and `da7a383` back to back; the newer commit won, which is the expected behaviour.
+  4. `8769f47c`: roadmap update and blurred screenshot.
 - Pipeline `#3072974617` passed all four stages in 1 min 41 s.
 - Registry: `latest` and `b59db033` share one digest; older tags (`e9f486a2`, `f104d547`) remain available for rollback.
 - 8 of 8 tests pass locally.
