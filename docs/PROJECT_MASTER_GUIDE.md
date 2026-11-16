@@ -1043,7 +1043,7 @@ Phase 7 (Reliability & security), steps 1-3 **DONE and verified** (see the Phase
 
 **Next action**
 Phase 7 remaining steps:
-4. Docs-only rules: `rules: changes:` on validate, test, build and deploy (written, **not yet verified by a pipeline run**).
+4. Docs-only rules: `rules: changes:` on validate, test, build and deploy (code-path push verified: `ebdc17d4` ran the full pipeline and deployed at 11:40:00, uptime 2.32; **docs-only test in progress**).
 5. Trivy image scanning.
 6. Registry cleanup policy.
 7. "Security decisions & limitations" section in the README.
