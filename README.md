@@ -90,6 +90,15 @@ Screenshots from a real run: pipeline `#3072974617`, commit `b59db033`, deployed
 **10. Docs-only push skips the pipeline.** Commit `ebdc17d` changed pipeline files and has a pipeline; the later docs-only commit `382de9a` has none, so nothing was redeployed.
 ![Commit list: docs-only commit has no pipeline](docs/screenshots/11-docs-only-skip.png)
 
+**11. Pipeline with the scan stage.** Commit `be1e03d` ran pipeline #3073314513 with five green stages (validate, test, build, scan, deploy).
+![Pipeline with the scan stage](docs/screenshots/12-pipeline-scan.png)
+
+**12. Scan job setup.** The `scan` job (#18062641182) runs the pinned image `aquasec/trivy:0.76.2@sha256:8f6bb947...` (Trivy 0.76.2). It downloads the vulnerability DB first, then scans the pushed image remotely with the registry credentials set only on the scan command.
+![Scan job setup](docs/screenshots/13a-scan-setup.png)
+
+**13. Scan report.** End of the HIGH,CRITICAL report, which does not fail the job. The gate then passed: no CRITICAL vulnerability with a fix available. This does not mean the image has no vulnerabilities; the report listed findings that are not reviewed yet.
+![End of the scan report](docs/screenshots/13b-scan-report.png)
+
 ## Roadmap
 
 1. Application foundation: done
@@ -98,6 +107,6 @@ Screenshots from a real run: pipeline `#3072974617`, commit `b59db033`, deployed
 4. GitLab CI/CD and Runner: done
 5. Container registry: done, verified (tag `f104d547` still in the registry 6 days after it was pushed)
 6. Linux deployment: done, verified by automated deploys `e9f486a2` and `b59db033`
-7. Reliability & security: **in progress**. Verified: runner token rotation, `resource_group: production` (deploy `ec0a187d`), rollback via GitLab Environments (production `ec0a187d` to `b59db033`, no rebuild), docs-only rules (`rules: changes:`; a docs-only push creates no pipeline). Remaining: Trivy image scanning, registry cleanup policy, security decisions & limitations
+7. Reliability & security: **in progress**. Verified: runner token rotation, `resource_group: production` (deploy `ec0a187d`), rollback via GitLab Environments (production `ec0a187d` to `b59db033`, no rebuild), docs-only rules (`rules: changes:`; a docs-only push creates no pipeline), Trivy image scan stage (the gate passed: no CRITICAL vulnerability with a fix; the HIGH/CRITICAL report is not reviewed yet). Remaining: registry cleanup policy, security decisions & limitations
 8. Monitoring (optional)
 9. Portfolio & documentation

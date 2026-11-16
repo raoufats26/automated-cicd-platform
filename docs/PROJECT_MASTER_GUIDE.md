@@ -1047,10 +1047,19 @@ Phase 7 remaining steps:
    - Code-path push `ebdc17d4`: full pipeline, deployed at 11:40:00 (uptime 2.32).
    - Docs-only push `382de9a`: no pipeline, no deploy. `/api/status` still showed `ebdc17d4` with uptime 359.3 at 11:46.
    - Evidence: `docs/screenshots/11-docs-only-skip.png`.
-5. Trivy image scanning: `scan` job written (Trivy 0.76.2 pinned by digest, credentials only on the scan commands), **not yet verified by a pipeline run**.
-6. Registry cleanup policy.
-7. "Security decisions & limitations" section in the README.
-   - Limitation to list: the Trivy scanner image is pinned by version and digest (`0.76.2@sha256:8f6bb947...`) but not cosign-verified.
+5. Trivy image scanning: **DONE and verified.**
+   - `scan` job #18062641182 passed with Trivy 0.76.2 (scanner image pinned by version and digest), credentials set only on the scan commands.
+   - The gate (`--severity CRITICAL --ignore-unfixed --exit-code 1`) passed: no CRITICAL vulnerability with a fix available. This does NOT mean the image is free of vulnerabilities: the HIGH,CRITICAL report listed findings that are not reviewed yet.
+   - `be1e03dc` deployed after the scan (`/api/status` from Windows, uptime 83.91).
+   - Evidence: `docs/screenshots/12-pipeline-scan.png`, `13a-scan-setup.png`, `13b-scan-report.png`.
+
+Still to do, in this order:
+- Review the full Trivy HIGH,CRITICAL report.
+- Step 6: registry cleanup policy.
+- Step 7: "Security decisions & limitations" section in the README.
+  - Limitation to list: the Trivy scanner image is pinned by version and digest (`0.76.2@sha256:8f6bb947...`) but not cosign-verified.
+- Secret scan of the repository.
+- Then Phase 9 (Portfolio & documentation).
 
 ---
 
