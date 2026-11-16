@@ -72,7 +72,7 @@ deploy:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH   # deploy from main only
   environment:
     name: production
-    url: http://localhost:8000
+    url: http://192.168.175.128:8000
   variables:
     IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
   script:

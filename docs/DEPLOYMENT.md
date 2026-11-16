@@ -52,7 +52,6 @@ If `docker compose version` says "unknown command", install the Compose package 
 sudo apt install -y docker-compose
 docker compose version
 ```
-(If it still fails, send me the output: Docker's own `docker-compose-plugin` can be added instead.)
 
 On Ubuntu use Docker's official apt repository instead: https://docs.docker.com/engine/install/ubuntu/
 
@@ -65,12 +64,26 @@ The standard package script may not recognise Kali, so use GitLab's manual binar
 sudo curl -L --output /usr/local/bin/gitlab-runner   "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-amd64"
 sudo chmod +x /usr/local/bin/gitlab-runner
 sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
-sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
-sudo gitlab-runner start
-sudo gitlab-runner status              # expected: "gitlab-runner: Service is running"
+sudo /usr/local/bin/gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+sudo /usr/local/bin/gitlab-runner start
+sudo /usr/local/bin/gitlab-runner status   # expected: "gitlab-runner: Service is running"
 ```
 Check your CPU type first with `uname -m`: `x86_64` uses the `amd64` binary above (use `arm64`
 for `aarch64`).
+
+**Why the full path?** On Kali, `sudo` only searches a fixed list of folders (`secure_path`),
+and `/usr/local/bin` is not in it, so plain `sudo gitlab-runner ...` says "command not found".
+Typing the full path avoids the problem.
+
+**Remove `.bash_logout`.** On Debian-based systems (Kali, Ubuntu) the new user gets a
+`.bash_logout` file that makes every shell-executor job fail at the end
+(a known GitLab Runner issue). Delete it:
+```bash
+sudo rm /home/gitlab-runner/.bash_logout
+```
+
+**Kali must be installed to disk.** In Live mode everything (runner, Docker, config) is lost
+at reboot. Install Kali to the virtual disk first.
 
 ## 4. Create the runner in GitLab (browser)
 
@@ -81,7 +94,7 @@ for `aarch64`).
 ## 5. Register it (Linux, on the server)
 
 ```bash
-sudo gitlab-runner register
+sudo /usr/local/bin/gitlab-runner register
 ```
 - GitLab instance URL: `https://gitlab.com`
 - Token: the `glrt-...` value
