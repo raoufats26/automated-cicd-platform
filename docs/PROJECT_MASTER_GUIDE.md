@@ -1008,10 +1008,39 @@ git add / git commit / git push origin main
 `.gitlab-ci.yml`, `deploy/deploy.sh`, `deploy/docker-compose.deploy.yml`, `app/main.py`, `tests/test_main.py`, `docs/DEPLOYMENT.md`, `docs/screenshots/*.png` (9 files), `README.md`, `docs/PROJECT_MASTER_GUIDE.md`.
 
 **Next action**
-Phase 7 (Reliability & security):
-1. Rotate the exposed runner token: **DONE** (see above).
-2. Add `resource_group: production` to the deploy job so two deploys can never run at once: **DONE** in `.gitlab-ci.yml`, not yet verified by a pipeline run.
-3. Implement and test rollback to a previous commit tag: next.
+Phase 7 (Reliability & security), steps 1-3 **DONE and verified** (see the Phase 7 entry below).
+
+---
+
+### Session 2026-11-16 (later): Phase 7, reliability and security (steps 1-3 verified)
+
+**Date:** 2026-11-16
+
+**Phase:** 7 (Reliability & security), in progress.
+
+**Goal for this session:** Rotate the exposed runner token, serialise production deploys, and prove a rollback.
+
+**What I implemented**
+1. Runner token rotation: old runner deleted in GitLab (`unregister` only removes the runner manager, so the runner itself had to be deleted), new runner created and registered.
+2. `resource_group: production` on the deploy job: only one deploy to production at a time, across pipelines.
+3. Rollback through GitLab Environments, with a "Rollback procedure" section in `docs/DEPLOYMENT.md`.
+
+**What worked**
+- The deploy of `ec0a187d` succeeded with `resource_group` set, on the new runner.
+- Rollback: production went from `ec0a187d` to `b59db033` at 11:26:48 (uptime 1.71 s). It reused the existing registry image, with no rebuild. The Deployment history shows it as ID 11, run from old pipeline #3072974617.
+- Roll-forward: a new pipeline on `main`.
+- Prerequisites that must be ON: "Prevent outdated deployment jobs" and "Allow job retries for rollback deployments".
+
+**Concepts I learned**
+- Rollback here means re-running an old deploy job, which is only possible because images are tagged by commit and old tags are kept.
+- A rollback changes the running container, not `main`; the next push to `main` deploys forward again.
+- `resource_group` queues deploys instead of running them in parallel.
+
+**Files created or modified**
+`.gitlab-ci.yml`, `docs/DEPLOYMENT.md`, `docs/screenshots/10-rollback-environment.png`, `README.md`, `docs/PROJECT_MASTER_GUIDE.md`.
+
+**Next action**
+To be decided for the rest of Phase 7 (not yet planned in this log).
 
 ---
 

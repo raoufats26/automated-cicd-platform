@@ -84,6 +84,9 @@ Screenshots from a real run: pipeline `#3072974617`, commit `b59db033`, deployed
 **8. Version live.** `/api/status` from Windows shows the deployed commit SHA.
 ![Live version](docs/screenshots/08-version-live.png)
 
+**9. Rollback.** Production went back from `ec0a187d` to `b59db033` using the existing registry image, with no rebuild (deployment ID 11, re-run from the old pipeline #3072974617).
+![Rollback in the production environment](docs/screenshots/10-rollback-environment.png)
+
 ## Roadmap
 
 1. Application foundation: done
@@ -92,6 +95,6 @@ Screenshots from a real run: pipeline `#3072974617`, commit `b59db033`, deployed
 4. GitLab CI/CD and Runner: done
 5. Container registry: done, verified (tag `f104d547` still in the registry 6 days after it was pushed)
 6. Linux deployment: done, verified by automated deploys `e9f486a2` and `b59db033`
-7. Reliability & security: **next**
+7. Reliability & security: **in progress**. Verified: runner token rotation, `resource_group: production` (deploy `ec0a187d`), rollback via GitLab Environments (production `ec0a187d` to `b59db033`, no rebuild)
 8. Monitoring (optional)
 9. Portfolio & documentation

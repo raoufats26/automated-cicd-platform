@@ -123,6 +123,27 @@ curl http://localhost:8000/health    # {"status":"healthy"}
 From your Windows PC use the VM's IP (`ip a` on the server) instead of `localhost`:
 `http://<vm-ip>:8000/health`.
 
+## Rollback procedure
+
+Every deploy uses an image tagged with its commit, and old tags stay in the registry, so
+going back is a re-run of an old deploy job. Nothing is rebuilt.
+
+**One-time settings** (Settings -> CI/CD -> Deployment safety), both must be ON:
+- **Prevent outdated deployment jobs**: stops an old job from overwriting a newer deployment by accident.
+- **Allow job retries for rollback deployments**: lets you deliberately re-run an old deploy job.
+
+**Roll back** (browser):
+1. Project -> **Operate -> Environments -> production -> Deployment history**.
+2. Find the last good deployment and click its **Rollback** (circular arrow) button.
+3. Confirm. The old `deploy` job runs again and pulls the old image tag from the registry.
+4. Check on the server or from Windows: `curl http://<vm-ip>:8000/api/status` shows the old commit as `version`.
+
+**Roll forward**: push a fix to `main`, or run a new pipeline on `main`. A newer deployment is accepted normally.
+
+Note: a rollback only changes the running container. The code on `main` is unchanged, so the next push to `main` deploys the new code again.
+
+Tested on 2026-11-16: production went from `ec0a187d` to `b59db033` (deployment ID 11, re-run from pipeline #3072974617) with no rebuild.
+
 ## Troubleshooting
 
 | Symptom | Check |
