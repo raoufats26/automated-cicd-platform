@@ -132,17 +132,35 @@ going back is a re-run of an old deploy job. Nothing is rebuilt.
 - **Prevent outdated deployment jobs**: stops an old job from overwriting a newer deployment by accident.
 - **Allow job retries for rollback deployments**: lets you deliberately re-run an old deploy job.
 
-**Roll back** (browser):
-1. Project -> **Operate -> Environments -> production -> Deployment history**.
-2. Find the last good deployment and click its **Rollback** (circular arrow) button.
-3. Confirm. The old `deploy` job runs again and pulls the old image tag from the registry.
-4. Check on the server or from Windows: `curl http://<vm-ip>:8000/api/status` shows the old commit as `version`.
+**Roll back** (browser), the path actually used and tested:
+1. Project -> **Operate -> Environments -> production** (Deployment history).
+2. On the row of the last good deployment, click the rollback arrow (the circular arrow) and confirm.
+3. The old `deploy` job runs again and pulls the old image tag from the registry. Nothing is rebuilt.
+4. Check: `curl http://<vm-ip>:8000/api/status` shows the old commit as `version`.
 
-**Roll forward**: push a fix to `main`, or run a new pipeline on `main`. A newer deployment is accepted normally.
+**Roll forward**: use **Build -> Pipelines -> Run pipeline** on `main`. This is the reliable way.
+Clicking the arrow on the newest row did *not* create a job when tested. Pushing a new commit
+that changes app files also deploys normally (see the next section).
 
-Note: a rollback only changes the running container. The code on `main` is unchanged, so the next push to `main` deploys the new code again.
+Note: a rollback only changes the running container. The code on `main` is unchanged.
 
 Tested on 2026-11-16: production went from `ec0a187d` to `b59db033` (deployment ID 11, re-run from pipeline #3072974617) with no rebuild.
+
+## When does a push deploy? (docs-only pushes)
+
+The `validate`, `test`, `build` and `deploy` jobs use `rules: changes:` and only run when a push
+changes a file that affects the app: `app/`, `tests/`, `deploy/`, `requirements.txt`, `Dockerfile`,
+`.dockerignore` or `.gitlab-ci.yml`. `deploy` also still requires the default branch.
+
+Consequences:
+- A push that only changes docs or the README creates **no pipeline** and **no deployment**.
+- So `/api/status` shows the **last deployed code commit**, which can differ from the latest
+  commit on `main` after a docs-only push. This is expected, not a failed deploy.
+- Branch pipelines compare a push with the previous commit. New branches, manual
+  (**Run pipeline**), scheduled and tag pipelines have no such diff, so GitLab runs every job.
+  That is why **Run pipeline** on `main` always deploys.
+- If a code push fails and a docs-only commit follows, the failed code is not retried by that
+  second push. Use **Run pipeline** or fix the code.
 
 ## Troubleshooting
 

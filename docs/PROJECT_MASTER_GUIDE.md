@@ -1039,8 +1039,14 @@ Phase 7 (Reliability & security), steps 1-3 **DONE and verified** (see the Phase
 **Files created or modified**
 `.gitlab-ci.yml`, `docs/DEPLOYMENT.md`, `docs/screenshots/10-rollback-environment.png`, `README.md`, `docs/PROJECT_MASTER_GUIDE.md`.
 
+**Rollback path used:** Operate -> Environments -> production -> rollback arrow on the target row -> confirm. Roll-forward with the arrow on the newest row did NOT create a job; the reliable roll-forward was Build -> Pipelines -> Run pipeline on `main`.
+
 **Next action**
-To be decided for the rest of Phase 7 (not yet planned in this log).
+Phase 7 remaining steps:
+4. Docs-only rules: `rules: changes:` on validate, test, build and deploy (written, **not yet verified by a pipeline run**).
+5. Trivy image scanning.
+6. Registry cleanup policy.
+7. "Security decisions & limitations" section in the README.
 
 ---
 

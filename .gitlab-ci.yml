@@ -7,13 +7,37 @@ stages:
   - build
   - deploy
 
+# Branch pipelines only: no merge request pipelines, so a branch with an open MR
+# never gets two pipelines (one per type). Tag pipelines are not used in this project.
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 variables:
   # Keep pip's download cache inside the project so GitLab can cache it
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
+# Files that affect the running app. A push that changes none of them (for example
+# README or docs only) creates no pipeline and no deployment. Consequence: /api/status
+# shows the last DEPLOYED code commit, which can differ from the latest commit on main.
+# Manual ("Run pipeline"), scheduled and new-branch pipelines have no push diff, so
+# GitLab treats every file as changed and all jobs run.
+.app-files:
+  rules:
+    - changes: &app-files
+        - app/**/*
+        - tests/**/*
+        - requirements.txt
+        - Dockerfile
+        - .dockerignore
+        - deploy/**/*
+        - .gitlab-ci.yml
+
 # Settings shared by the two Python jobs
 .python-job:
   image: python:3.12-slim
+  rules:
+    - changes: *app-files
   cache:
     key:
       files:
@@ -44,6 +68,8 @@ test:
 
 build:
   stage: build
+  rules:
+    - changes: *app-files
   image: docker:27-cli
   services:
     - docker:27-dind        # a Docker engine the job can talk to
@@ -70,6 +96,7 @@ deploy:
     - deploy                # only a runner tagged "deploy" (ours, on the server) takes this job
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH   # deploy from main only
+      changes: *app-files                           # ...and only when app files changed
   resource_group: production   # only one deploy to production at a time, across all pipelines
   environment:
     name: production
