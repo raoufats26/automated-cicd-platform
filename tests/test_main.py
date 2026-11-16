@@ -11,6 +11,7 @@ def test_root_returns_app_info():
     body = response.json()
     assert body["name"] == "gitlab-cicd-platform"
     assert "version" in body
+    assert body["message"] == "Deployed by GitLab CI/CD"
 
 
 def test_health_returns_healthy():

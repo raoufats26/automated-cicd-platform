@@ -51,6 +51,7 @@ def root() -> dict:
         "version": APP_VERSION,
         "environment": ENVIRONMENT,
         "docs": "/docs",
+        "message": "Deployed by GitLab CI/CD",
     }
 
 
