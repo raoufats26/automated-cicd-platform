@@ -75,5 +75,6 @@ deploy:
     url: http://192.168.175.128:8000
   variables:
     IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+    APP_VERSION: "$CI_COMMIT_SHORT_SHA"   # shown by /api/status
   script:
     - bash deploy/deploy.sh

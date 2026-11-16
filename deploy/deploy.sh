@@ -3,6 +3,9 @@
 # Run by the GitLab Runner installed on the server (see docs/DEPLOYMENT.md).
 set -euo pipefail   # stop at the first error, on unset variables, and on pipe failures
 
+# Always remove the registry credential when the script ends (success or failure)
+trap 'docker logout "$CI_REGISTRY" >/dev/null 2>&1' EXIT
+
 : "${IMAGE:?IMAGE is not set}"
 : "${CI_REGISTRY:?CI_REGISTRY is not set}"
 : "${CI_JOB_TOKEN:?CI_JOB_TOKEN is not set}"
