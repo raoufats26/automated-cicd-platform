@@ -965,7 +965,14 @@ curl http://localhost:8000/api/status
 # Windows (PowerShell)
 .\.venv\Scripts\python.exe -m pytest -v
 Invoke-RestMethod http://192.168.175.128:8000/api/status | Format-List
-# plus a polling loop that repeats the call above until the new version appears
+# Polling loop: waits until the version changes after a push.
+# Replace <previous-version> with the version running before the push (e.g. b59db033).
+do {
+    $s = Invoke-RestMethod http://192.168.175.128:8000/api/status
+    Write-Host "$(Get-Date -Format HH:mm:ss)  version=$($s.version)  uptime=$($s.uptime_seconds)"
+    Start-Sleep -Seconds 10
+} while ($s.version -eq "<previous-version>")
+
 git add / git commit / git push origin main
 ```
 
