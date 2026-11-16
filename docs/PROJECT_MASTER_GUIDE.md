@@ -1043,7 +1043,10 @@ Phase 7 (Reliability & security), steps 1-3 **DONE and verified** (see the Phase
 
 **Next action**
 Phase 7 remaining steps:
-4. Docs-only rules: `rules: changes:` on validate, test, build and deploy (code-path push verified: `ebdc17d4` ran the full pipeline and deployed at 11:40:00, uptime 2.32; **docs-only test in progress**).
+4. Docs-only rules: `rules: changes:` on validate, test, build and deploy **DONE and verified.**
+   - Code-path push `ebdc17d4`: full pipeline, deployed at 11:40:00 (uptime 2.32).
+   - Docs-only push `382de9a`: no pipeline, no deploy. `/api/status` still showed `ebdc17d4` with uptime 359.3 at 11:46.
+   - Evidence: `docs/screenshots/11-docs-only-skip.png`.
 5. Trivy image scanning.
 6. Registry cleanup policy.
 7. "Security decisions & limitations" section in the README.
