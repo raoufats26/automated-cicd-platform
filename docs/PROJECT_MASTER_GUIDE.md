@@ -991,7 +991,7 @@ git add / git commit / git push origin main
 - **ICMP blocked, HTTPS worked:** `ping` to the internet failed, but HTTPS requests succeeded. Lesson: do not use `ping` to judge connectivity; test with `curl` on the port you actually need.
 - **`sudo gitlab-runner` not found:** sudo's `secure_path` does not include `/usr/local/bin`. Fix: use the full path `/usr/local/bin/gitlab-runner`.
 - **Shell executor jobs failing at the end:** the `.bash_logout` file in the runner user's home is a known problem on Debian-based systems. Fix: delete it.
-- **Runner token exposed in chat:** the `glrt-...` registration token was pasted into a chat. **Rotation is still pending** (not done yet). Until then, treat that runner as compromised.
+- **Runner token exposed in chat:** the `glrt-...` registration token was pasted into a chat. **Rotation: DONE.** The old runner was deleted in GitLab. Note that `gitlab-runner unregister` only removes the runner manager (the local registration), not the runner itself, so the runner had to be deleted in GitLab as well, otherwise the exposed token would stay valid. A new runner was created and registered, and the deploy job was retried successfully on it.
 - **Windows vs Linux case sensitivity:** the screenshots folder was `docs/Screenshots` on disk but the README linked `docs/screenshots`. Windows ignores case, GitLab does not, so the images would have been broken. Fix: renamed the folder to lowercase. Also, the first push forgot the images because Git saw the folder under another name.
 - **First health check fails during startup:** `curl` returned "Connection reset by peer" on attempt 1, because the container was still starting. Expected behaviour, not a bug: the retry loop succeeded on attempt 2.
 - **Public IP in a screenshot:** it was blurred in `06-runner-online.png`, but the old image remains in git history (`da7a383`). Low risk, no rewrite done.
@@ -1008,7 +1008,10 @@ git add / git commit / git push origin main
 `.gitlab-ci.yml`, `deploy/deploy.sh`, `deploy/docker-compose.deploy.yml`, `app/main.py`, `tests/test_main.py`, `docs/DEPLOYMENT.md`, `docs/screenshots/*.png` (9 files), `README.md`, `docs/PROJECT_MASTER_GUIDE.md`.
 
 **Next action**
-Phase 7 (Reliability & security): rotate the exposed runner token first, then add `resource_group` to the deploy job so two deploys can never run at once, then implement and test rollback to a previous commit tag.
+Phase 7 (Reliability & security):
+1. Rotate the exposed runner token: **DONE** (see above).
+2. Add `resource_group: production` to the deploy job so two deploys can never run at once: **DONE** in `.gitlab-ci.yml`, not yet verified by a pipeline run.
+3. Implement and test rollback to a previous commit tag: next.
 
 ---
 

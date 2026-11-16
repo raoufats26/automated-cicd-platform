@@ -70,6 +70,7 @@ deploy:
     - deploy                # only a runner tagged "deploy" (ours, on the server) takes this job
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH   # deploy from main only
+  resource_group: production   # only one deploy to production at a time, across all pipelines
   environment:
     name: production
     url: http://192.168.175.128:8000
