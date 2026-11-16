@@ -924,6 +924,71 @@ Use this section to record progress after each work session.
 
 ---
 
+### Session 2026-11-16: Phase 6, Linux deployment (verified)
+
+**Date:** 2026-11-16
+
+**Phase:** 6 (Linux deployment), finished and verified. Phase 5 (registry) re-verified.
+
+**Goal for this session:** Bring the self-hosted Kali deploy runner online, deploy automatically from `main`, prove a second automated deploy, and collect evidence for the portfolio.
+
+**What I implemented**
+- Installed Kali to disk (it had been running in Live mode) and set up Docker 28.5.2, Compose v2.40.3 and GitLab Runner 19.5.3 (shell executor, tag `deploy`, "run untagged jobs" off).
+- Deploy job in `.gitlab-ci.yml`, run on `main` only, with `environment.url` set to the Kali VM and `APP_VERSION` set to the commit SHA.
+- `deploy/deploy.sh`: registry login, pull, `up -d`, health-check retry loop, and `trap ... docker logout` on exit.
+- `deploy/docker-compose.deploy.yml`: pulls the image from the registry and never builds on the server.
+- Visible change: `GET /` now returns `"message": "Deployed by GitLab CI/CD"`, with the test updated.
+- README "Results / Evidence" section with 9 screenshots, and an updated Roadmap.
+
+**Commands I ran**
+
+```
+# Kali (Linux), see docs/DEPLOYMENT.md for the full sequence
+sudo /usr/local/bin/gitlab-runner register
+sudo /usr/local/bin/gitlab-runner status
+sudo usermod -aG docker gitlab-runner
+sudo -u gitlab-runner docker ps
+sudo rm /home/gitlab-runner/.bash_logout
+curl http://localhost:8000/api/status
+
+# Windows (PowerShell)
+.\.venv\Scripts\python.exe -m pytest -v
+Invoke-RestMethod http://192.168.175.128:8000/api/status | Format-List
+git add / git commit / git push origin main
+```
+
+**What worked**
+- Three automated deploys were verified. I have the commit IDs for two: `e9f486a2` and `b59db033`. After each one, `/api/status` showed the matching version.
+- Pipeline `#3072974617` passed all four stages in 1 min 41 s.
+- Registry: `latest` and `b59db033` share one digest; older tags (`e9f486a2`, `f104d547`) remain available for rollback.
+- 8 of 8 tests pass locally.
+
+**Errors and troubleshooting**
+- **Kali was in Live mode (overlay root):** changes are lost on reboot. Fix: install Kali to the virtual disk, then redo the runner setup.
+- **ICMP blocked, HTTPS worked:** `ping` to the internet failed, but HTTPS requests succeeded. Lesson: do not use `ping` to judge connectivity; test with `curl` on the port you actually need.
+- **`sudo gitlab-runner` not found:** sudo's `secure_path` does not include `/usr/local/bin`. Fix: use the full path `/usr/local/bin/gitlab-runner`.
+- **Shell executor jobs failing at the end:** the `.bash_logout` file in the runner user's home is a known problem on Debian-based systems. Fix: delete it.
+- **Runner token exposed in chat:** the `glrt-...` registration token was pasted into a chat. **Rotation is still pending** (not done yet). Until then, treat that runner as compromised.
+- **Windows vs Linux case sensitivity:** the screenshots folder was `docs/Screenshots` on disk but the README linked `docs/screenshots`. Windows ignores case, GitLab does not, so the images would have been broken. Fix: renamed the folder to lowercase. Also, the first push forgot the images because Git saw the folder under another name.
+- **First health check fails during startup:** `curl` returned "Connection reset by peer" on attempt 1, because the container was still starting. Expected behaviour, not a bug: the retry loop succeeded on attempt 2.
+- **Public IP in a screenshot:** it was blurred in `06-runner-online.png`, but the old image remains in git history (`da7a383`). Low risk, no rewrite done.
+
+**Concepts I learned**
+- `CI_JOB_TOKEN`: a per-job registry credential, revoked when the job ends. It is separate from the runner's own token.
+- Why the deploy uses the commit-SHA tag, not `latest`: every running version is traceable, and old tags allow rollback.
+- A health-check retry loop handles the gap between "container started" and "app ready".
+- `--password-stdin` and `docker logout` keep credentials out of process lists and off the disk.
+- Shell executor vs Docker executor, and why docker-group access is root-equivalent on the server.
+- `sudo` has its own `secure_path`, independent of your normal `PATH`.
+
+**Files created or modified**
+`.gitlab-ci.yml`, `deploy/deploy.sh`, `deploy/docker-compose.deploy.yml`, `app/main.py`, `tests/test_main.py`, `docs/DEPLOYMENT.md`, `docs/screenshots/*.png` (9 files), `README.md`, `docs/PROJECT_MASTER_GUIDE.md`.
+
+**Next action**
+Phase 7 (Reliability & security): rotate the exposed runner token first, then add `resource_group` to the deploy job so two deploys can never run at once, then implement and test rollback to a previous commit tag.
+
+---
+
 ## ✅ 16. Definition of done
 
 The core project is complete when all of the following are true:
