@@ -99,6 +99,16 @@ Screenshots from a real run: pipeline `#3072974617`, commit `b59db033`, deployed
 **13. Scan report.** End of the HIGH,CRITICAL report, which does not fail the job. The gate then passed: no CRITICAL vulnerability with a fix available. This does not mean the image has no vulnerabilities; the report listed findings that are not reviewed yet.
 ![End of the scan report](docs/screenshots/13b-scan-report.png)
 
+## Known limitations
+
+- **Single server.** There is one production host, so there is no redundancy or failover.
+- **Deploys cause brief downtime.** Deploys recreate the container, which means about 2-3 seconds of downtime per release.
+- **Runner has root-equivalent access.** The `gitlab-runner` user is in the `docker` group, which is effectively root on that server.
+- **Manual server setup.** The server was configured by hand; there is no infrastructure as code (IaC) yet.
+- **Partial vulnerability gate.** The Trivy gate fails the pipeline only on CRITICAL vulnerabilities that have a fix available. The HIGH findings are reported but not yet reviewed.
+- **Scanner image not signature-verified.** The Trivy image is pinned by digest but its signature is not verified with cosign.
+- **No registry cleanup policy.** Old images accumulate in the container registry.
+
 ## Roadmap
 
 1. Application foundation: done
